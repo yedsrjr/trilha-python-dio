@@ -1,66 +1,77 @@
-menu = """
-
-[d] Depositar
-[s] Sacar
-[e] Extrato
-[q] Sair
-
-=> """
-
+sys = True
 saldo = 0
-limite = 500
-extrato = ""
-numero_saques = 0
-LIMITE_SAQUES = 3
+valor_maximo = 500
+depositos = []
+qtd_saques = 0
+LIMITE_SAQUE = 3
 
-while True:
+def deposita(valor, saldo, depositos):
+    if valor <= 0:
+        return f'Valor inválido', saldo
 
-    opcao = input(menu)
+    saldo += valor
+    depositos.append({'Depósito': valor})
+    return f'\nDepósito realizado com sucesso!\n', saldo
 
-    if opcao == "d":
-        valor = float(input("Informe o valor do depósito: "))
+def saca(saldo_atual, valor_saque, saques, saldo_excedido, maximo_excedido, qtd_saques_execedido, depositos):
+    global qtd_saques  # Indica que estamos usando a variável global qtd_saques
+    if saldo_excedido:
+        print('Saldo Insuficiente.')
+        return saldo_atual  # Retorna o saldo sem alterações
+    elif maximo_excedido:
+        print('Valor máximo de saque excedido.')
+        return saldo_atual  # Retorna o saldo sem alterações
+    elif qtd_saques_execedido:
+        print('Quantidade saques diários excedidos.')
+        return saldo_atual  # Retorna o saldo sem alterações
+    elif valor_saque > 0:
+        saldo_atual -= valor_saque
+        depositos.append({'Saque': valor_saque})
+        qtd_saques += 1  # Incrementa a quantidade de saques
+        print('\nSaque realizado com sucesso\n')
+        return saldo_atual  # Retorna o novo saldo
+    else:
+        return saldo_atual # retorna o saldo caso o valor do saque não seja válido.
 
-        if valor > 0:
-            saldo += valor
-            extrato += f"Depósito: R$ {valor:.2f}\n"
+def extrato(saldo_atual, depositos):
+    print('\n##################################')
+    print(f'Valor em conta: R${saldo_atual:.2f}\n')
+    print('Depósitos realizados:\n')
 
-        else:
-            print("Operação falhou! O valor informado é inválido.")
+    for i in depositos:
+        for k, v in i.items():
+            print(f'{k}: R${v:.2f}')
+    print('##################################\n')
 
-    elif opcao == "s":
-        valor = float(input("Informe o valor do saque: "))
+def execute_sys():
+    opcao = int(input('--- Digite uma operação ---\n\n"1" para Depósitos \n"2" para Saque \n"3" para Visualizar Extrato \n"4" para Sair\n\n:: '))
+    return opcao
 
-        excedeu_saldo = valor > saldo
+while sys:
+    opcao = execute_sys()
 
-        excedeu_limite = valor > limite
+    if opcao == 1:
+        valor = float(input('\nDigite o valor que deseja depositar: '))
+        mensagem, saldo = deposita(valor, saldo, depositos)
+        print(mensagem)
 
-        excedeu_saques = numero_saques >= LIMITE_SAQUES
+    elif opcao == 2:
+        saque = float(input('\nDigite o valor que deseja sacar: '))
 
-        if excedeu_saldo:
-            print("Operação falhou! Você não tem saldo suficiente.")
+        saldo_excedido = saque > saldo
 
-        elif excedeu_limite:
-            print("Operação falhou! O valor do saque excede o limite.")
+        maximo_excedido = saque > valor_maximo
 
-        elif excedeu_saques:
-            print("Operação falhou! Número máximo de saques excedido.")
+        qtd_saques_execedido = qtd_saques >= LIMITE_SAQUE
 
-        elif valor > 0:
-            saldo -= valor
-            extrato += f"Saque: R$ {valor:.2f}\n"
-            numero_saques += 1
+        saldo = saca(saldo, saque, qtd_saques, saldo_excedido, maximo_excedido, qtd_saques_execedido, depositos) # Atualiza o saldo
 
-        else:
-            print("Operação falhou! O valor informado é inválido.")
+    elif opcao == 3:
+        extrato(saldo, depositos)
 
-    elif opcao == "e":
-        print("\n================ EXTRATO ================")
-        print("Não foram realizadas movimentações." if not extrato else extrato)
-        print(f"\nSaldo: R$ {saldo:.2f}")
-        print("==========================================")
-
-    elif opcao == "q":
-        break
+    elif opcao == 4:
+        sys = False
 
     else:
-        print("Operação inválida, por favor selecione novamente a operação desejada.")
+        print('Valor inválido')
+        continue
